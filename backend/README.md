@@ -21,7 +21,7 @@ Sistem AI yang terintegrasi dalam bentuk API untuk mendukung Website dan Mobile 
 
 - Python 3.9+
 - MySQL/PHPMyAdmin
-- Gemini API Key
+- Gemini API Key tes
 
 ## 🚀 Instalasi
 
