@@ -480,25 +480,25 @@ class RootCauseAI:
         {root_causes_text}
         
         ## Kriteria Benchmark Penilaian:
-        1. Spesifisitas (0-2.5 poin): Seberapa spesifik root cause dalam menjelaskan masalah
-            - 0-0.5: Sangat umum, tidak spesifik
-            - 0.6-1.5: Cukup spesifik
-            - 1.6-2.5: Sangat spesifik dan detail
+        1. Spesifisitas (1-25 poin): Seberapa spesifik root cause dalam menjelaskan masalah
+            - 1-5: Sangat umum, tidak spesifik
+            - 6-15: Cukup spesifik
+            - 16-25: Sangat spesifik dan detail
             
-        2. Relevansi dengan Problem (0-2.5 poin): Seberapa relevan root cause dengan problem yang dijelaskan
-            - 0-0.5: Tidak relevan dengan problem
-            - 0.6-1.5: Cukup relevan
-            - 1.6-2.5: Sangat relevan dan tepat sasaran
+        2. Relevansi dengan Problem (1-25 poin): Seberapa relevan root cause dengan problem yang dijelaskan
+            - 1-5: Tidak relevan dengan problem
+            - 6-15: Cukup relevan
+            - 16-25: Sangat relevan dan tepat sasaran
             
-        3. Kejelasan Analisis (0-2.5 poin): Seberapa jelas root cause dalam mengidentifikasi penyebab
-            - 0-0.5: Tidak jelas, membingungkan
-            - 0.6-1.5: Cukup jelas
-            - 1.6-2.5: Sangat jelas dan mudah dipahami
+        3. Kejelasan Analisis (1-25 poin): Seberapa jelas root cause dalam mengidentifikasi penyebab
+            - 1-5: Tidak jelas, membingungkan
+            - 6-15: Cukup jelas
+            - 16-25: Sangat jelas dan mudah dipahami
             
-        4. Actionability (0-2.5 poin): Seberapa mudah root cause dapat ditindaklanjuti
-            - 0-0.5: Sulit untuk ditindaklanjuti
-            - 0.6-1.5: Cukup dapat ditindaklanjuti
-            - 1.6-2.5: Sangat mudah untuk ditindaklanjuti
+        4. Actionability (1-25 poin): Seberapa mudah root cause dapat ditindaklanjuti
+            - 1-5: Sulit untuk ditindaklanjuti
+            - 6-15: Cukup dapat ditindaklanjuti
+            - 16-25: Sangat mudah untuk ditindaklanjuti
         
         ## Format Jawaban:
         Berikan output JSON dengan format:
@@ -507,20 +507,20 @@ class RootCauseAI:
           "scores": [
             {{
               "root_cause": "Root cause 1",
-              "spesifisitas": 2.0,
-              "relevansi": 1.8,
-              "kejelasan": 2.2,
-              "actionability": 1.9,
-              "total_score": 7.9,
+              "spesifisitas": 20,
+              "relevansi": 18,
+              "kejelasan": 22,
+              "actionability": 19,
+              "total_score": 79,
               "feedback": "Feedback singkat tentang root cause ini"
             }},
             {{
               "root_cause": "Root cause 2",
-              "spesifisitas": 1.5,
-              "relevansi": 2.0,
-              "kejelasan": 1.8,
-              "actionability": 1.6,
-              "total_score": 6.9,
+              "spesifisitas": 15,
+              "relevansi": 20,
+              "kejelasan": 18,
+              "actionability": 16,
+              "total_score": 69,
               "feedback": "Feedback singkat tentang root cause ini"
             }}
           ],
@@ -530,7 +530,9 @@ class RootCauseAI:
         
         ## Penting:
         - Berikan nilai yang objektif sesuai dengan kriteria benchmark
-        - Total score adalah jumlah dari semua kriteria (max 10 poin)
+        - Total score adalah jumlah dari semua kriteria (range 4-100 poin)
+        - Nilai per kriteria harus dalam range 1-25
+        - Nilai total harus dalam range 4-100
         - Feedback harus singkat, konstruktif, dan dalam Bahasa Indonesia
         - Summary harus memberikan gambaran keseluruhan hasil penilaian
         
