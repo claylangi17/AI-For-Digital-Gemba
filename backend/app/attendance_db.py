@@ -148,8 +148,11 @@ class AttendanceDB:
 
             if existing_presence:
                 # User already has presence record
-                if existing_presence['status'] == 'present':
-                    # Update time_out for existing presence
+                # Keep the original status (late or present)
+                current_status = existing_presence['status']
+                
+                if existing_presence['time_out'] is None:
+                    # First check-out: Update time_out while preserving the original status
                     update_query = """
                     UPDATE presences 
                     SET time_out = %s, updated_at = %s
@@ -159,11 +162,11 @@ class AttendanceDB:
                         update_query, (current_time, current_time, existing_presence['id']))
                     self.connection.commit()
 
-                    # Return updated presence data
+                    # Return updated presence data with original status
                     updated_data = {
                         "user_id": user_id,
                         "timestamp": current_time.isoformat(),
-                        "status": "present",
+                        "status": current_status,  # Maintain original status
                         "time_in": existing_presence['time_in'].isoformat() if existing_presence['time_in'] else None,
                         "time_out": current_time.isoformat(),
                         "user_name": user['name'],
@@ -172,28 +175,18 @@ class AttendanceDB:
 
                     return True, "Presence updated successfully", updated_data
                 else:
-                    # Update presence status to present
-                    update_query = """
-                    UPDATE presences 
-                    SET status = 'present', time_in = %s, updated_at = %s
-                    WHERE id = %s
-                    """
-                    self.cursor.execute(
-                        update_query, (current_time, current_time, existing_presence['id']))
-                    self.connection.commit()
-
-                    # Return updated presence data
-                    updated_data = {
+                    # They've already signed out, just return the current data
+                    existing_data = {
                         "user_id": user_id,
                         "timestamp": current_time.isoformat(),
-                        "status": "present",
-                        "time_in": current_time.isoformat(),
-                        "time_out": None,
+                        "status": current_status,
+                        "time_in": existing_presence['time_in'].isoformat() if existing_presence['time_in'] else None,
+                        "time_out": existing_presence['time_out'].isoformat() if existing_presence['time_out'] else None,
                         "user_name": user['name'],
                         "role": user['role']
                     }
 
-                    return True, "Presence status updated to present", updated_data
+                    return True, "You have already signed out", existing_data
             else:
                 # Determine if user is late based on session start time (9 AM)
                 # Get current session date from session_id
