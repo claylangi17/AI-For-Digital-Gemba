@@ -335,28 +335,28 @@ def score_root_causes(
                     attendance_db.connect()
 
                 # Get current user points
-                user_query = "SELECT point FROM users WHERE id = %s"
+                user_query = "SELECT points FROM users WHERE id = %s"
                 attendance_db.cursor.execute(user_query, (request.user_id,))
                 user = attendance_db.cursor.fetchone()
 
                 if user:
-                    current_points = user['point'] or 0
+                    current_points = user['points'] or 0
                     
                     # Use the score directly (already in 1-100 range from AI)
                     points_to_add = max(1, min(100, int(max_score)))
                     new_points = current_points + points_to_add
 
                     # Update user points
-                    update_query = "UPDATE users SET point = %s WHERE id = %s"
+                    update_query = "UPDATE users SET points = %s WHERE id = %s"
                     attendance_db.cursor.execute(update_query, (new_points, request.user_id))
 
                     # Use 'contribution' category from the dropdown menu
                     current_time = datetime.now()
-                    print(f"Recording points with 'contribution' category")
+                    print(f"Recording points with 'ROOT' category")
                     history_query = f"""
-                    INSERT INTO point_history 
-                    (userid, type, category, point_before, point, point_after, created_at, updated_at)
-                    VALUES ('{request.user_id}', 'add', 'contribution', {current_points}, {points_to_add}, {new_points}, '{current_time}', '{current_time}')
+                    INSERT INTO point_histories 
+                    (userid, type, category, point_before, point_earned, point_after, created_at, updated_at)
+                    VALUES ('{request.user_id}', 'INC', 'ROOT', {current_points}, {points_to_add}, {new_points}, '{current_time}', '{current_time}')
                     """
                     
                     # Print the actual query for debugging
@@ -366,8 +366,8 @@ def score_root_causes(
                     attendance_db.cursor.execute(history_query)
 
                     attendance_db.connection.commit()
-                    print(f"Successfully recorded {points_to_add} points for user {request.user_id} with category 'contribution'")
-                    print(f"Note: Using 'contribution' category from dropdown instead of creating new category")
+                    print(f"Successfully recorded {points_to_add} points for user {request.user_id} with category 'ROOT'")
+                    print(f"Note: Using 'ROOT' category instead of 'contribution'")
             except Exception as e:
                 print(f"Error recording root cause points: {str(e)}")
     

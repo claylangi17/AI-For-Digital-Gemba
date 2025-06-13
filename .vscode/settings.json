@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "aradenta.com",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "connect",
+            "database": "aradenta_genba_digital",
+            "username": "aradenta_genba_external"
+        }
+    ]
+}

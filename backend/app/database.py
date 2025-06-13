@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import logging
+import traceback
 
 # Load environment variables
 load_dotenv()
@@ -68,9 +69,16 @@ class DatabaseConnector:
             list: A list of dictionaries containing only essential columns
         """
         query = """
-        SELECT area, problem, root_cause, category FROM gemba_issues 
-        WHERE area LIKE %s AND category LIKE %s
-        ORDER BY date DESC
+        SELECT
+            l.name AS area,
+            i.description AS problem,
+            rc.description AS root_cause,
+            rc.category AS category
+        FROM issues i
+        JOIN root_causes rc ON i.id = rc.issue_id
+        JOIN `lines` l ON i.line_id = l.id  -- Assuming lines.id and lines.name exist for area
+        WHERE l.name LIKE %s AND rc.category LIKE %s
+        ORDER BY i.created_at DESC
         """
         try:
             if not self.connection or not self.connection.is_connected():
@@ -93,10 +101,20 @@ class DatabaseConnector:
             list: A list of dictionaries containing all necessary fields for action suggestions
         """
         query = """
-        SELECT area, problem, root_cause, category, temporary_action, preventive_action 
-        FROM gemba_issues 
-        WHERE area LIKE %s AND category LIKE %s
-        ORDER BY date DESC
+        SELECT
+            l.name AS area,
+            i.description AS problem,
+            rc.description AS root_cause,
+            rc.category AS category,
+            MAX(CASE WHEN act.type = 'CORRECTIVE' THEN act.description ELSE NULL END) AS temporary_action,
+            MAX(CASE WHEN act.type = 'PREVENTIVE' THEN act.description ELSE NULL END) AS preventive_action
+        FROM issues i
+        JOIN root_causes rc ON i.id = rc.issue_id
+        JOIN `lines` l ON i.line_id = l.id  -- Assuming lines.id and lines.name exist for area
+        LEFT JOIN actions act ON rc.id = act.root_cause_id -- Actions are linked to root_causes
+        WHERE l.name LIKE %s AND rc.category LIKE %s
+        GROUP BY l.name, i.description, rc.description, rc.category, i.created_at -- Grouping to aggregate actions
+        ORDER BY i.created_at DESC
         """
         try:
             if not self.connection or not self.connection.is_connected():
@@ -179,9 +197,17 @@ class DatabaseConnector:
                 if 'category' in valid_records[idx]:
                     logger.info(f"  Category: {valid_records[idx]['category']}")
                 if 'temporary_action' in valid_records[idx]:
-                    logger.info(f"  Temporary Action: {valid_records[idx]['temporary_action'][:100]}..." if len(valid_records[idx]['temporary_action']) > 100 else f"  Temporary Action: {valid_records[idx]['temporary_action']}")
+                    action_text = valid_records[idx]['temporary_action']
+                    if action_text is not None:
+                        logger.info(f"  Temporary Action: {action_text[:100]}..." if len(action_text) > 100 else f"  Temporary Action: {action_text}")
+                    else:
+                        logger.info(f"  Temporary Action: None")
                 if 'preventive_action' in valid_records[idx]:
-                    logger.info(f"  Preventive Action: {valid_records[idx]['preventive_action'][:100]}..." if len(valid_records[idx]['preventive_action']) > 100 else f"  Preventive Action: {valid_records[idx]['preventive_action']}")
+                    action_text = valid_records[idx]['preventive_action']
+                    if action_text is not None:
+                        logger.info(f"  Preventive Action: {action_text[:100]}..." if len(action_text) > 100 else f"  Preventive Action: {action_text}")
+                    else:
+                        logger.info(f"  Preventive Action: None")
                 
                 # Add separator between matches for readability
                 logger.info(f"  {'-'*40}")
@@ -190,7 +216,7 @@ class DatabaseConnector:
             return top_records
             
         except Exception as e:
-            logger.error(f"Error in semantic search: {str(e)}")
+            logger.error(f"Error in semantic search: {str(e)}\n{traceback.format_exc()}")
             return data[:top_k] if len(data) > top_k else data
     
     def get_semantic_root_cause_data(self, problem: str, area: str, category: str, top_k: int = 10) -> List[Dict[str, Any]]:
@@ -276,7 +302,7 @@ class DatabaseConnector:
         Returns:
             list: A list of all unique areas
         """
-        query = "SELECT DISTINCT area FROM gemba_issues ORDER BY area"
+        query = "SELECT DISTINCT name AS area FROM `lines` ORDER BY name"
         
         try:
             if not self.connection or not self.connection.is_connected():
