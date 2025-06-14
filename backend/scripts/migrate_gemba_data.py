@@ -4,10 +4,10 @@ from datetime import datetime
 
 # --- KONFIGURASI DATABASE BARU ---
 DB_CONFIG = {
-    'host': 'localhost',        # Ganti dengan host database Anda
-    'user': 'your_user',        # Ganti dengan user database Anda
-    'password': 'your_password',  # Ganti dengan password Anda
-    'database': 'digital_gemba'  # Ganti dengan nama database baru Anda
+    'host': 'aradenta.com',        # Ganti dengan host database Anda
+    'user': 'aradenta_genba_external',        # Ganti dengan user database Anda
+    'password': 'yournameonit',  # Ganti dengan password Anda
+    'database': 'aradenta_genba_digital'  # Ganti dengan nama database baru Anda
 }
 
 # Path ke file SQL lama Anda
